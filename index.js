@@ -4,11 +4,11 @@ const https = require('https')
 const ENV_KEY='WIREPUSHER_KEY'
 const CONFIG_FILENAME='.wirepusher'
 
-exports.WirePusher = /** @class */ (function () {
-    function WirePusher(ids) {
+module.exports = class WirePusher {
+    constructor(ids) {
         let _ids = null
         if (typeof ids === 'undefined') {
-            const confDir = 'WIREPUSHER_CONFIG_DIR' in process.env ? process.env.WIREPUSHER_CONFIG_DIR : os.homedir();
+            const confDir = 'WIREPUSHER_CONFIG_DIR' in process.env ? process.env.WIREPUSHER_CONFIG_DIR : os.homedir()
             const confFile = path.join(confDir, CONFIG_FILENAME)
             if (process.env[ENV_KEY] && process.env[ENV_KEY].length > 3) {
                 _ids = process.env[ENV_KEY].split(',')
@@ -27,8 +27,8 @@ exports.WirePusher = /** @class */ (function () {
             } else {
                 _ids = []
             }
-        } else {
-            _ids = ids
+        } else if (typeof ids === 'string') {
+            _ids = ids.split(',')
         }
         if (_ids.length > 10) {
             while (_ids.length > 0) {
@@ -50,13 +50,13 @@ exports.WirePusher = /** @class */ (function () {
     /**
      * notify
      */
-    WirePusher.prototype.notify = function (n) {
+    notify(n) {
         return new Promise((resolve, reject) => {
             this.ids.forEach(id => {
                 let data = {
-                id: id,
-                title: n.title,
-                messgae: n.message
+                    id: id,
+                    title: n.title,
+                    message: n.message
                 }
                 if ('type' in n && n['type'].length > 0) {
                     data.type = n['type']
@@ -68,28 +68,21 @@ exports.WirePusher = /** @class */ (function () {
                     data.image_url = n['image_url']
                 }
                 if ('message_id' in n && n['message_id'].length > 0) {
-                    data.type = n['message_id']
+                    data.message_id = n['message_id']
                 }
-                data = JSON.stringify(data)
-                const options = {
-                    method: 'POST',
-                    path: 'send',
-                    port: 443,
-                    hostname: 'wirepusher.com',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Content-Length': data.length
-                    }
+
+                let dataStr = ''
+                for (let [key, value] of Object.entries(data)) {
+                    dataStr += key + `=` + escape(value) + `&`    
                 }
-                const req = https.request(options, (res) => {
-                    console.log(`statusCode: ${res.statusCode}`)
+                
+                const req = https.get(`https://wirepusher.com/send?${dataStr}`, (res) => {
                     let response = ''
                     res.on('data', (d) => {
                         response += d
                     })
                     res.on('end', () => {
                         try {
-                            // {"results":{"<id></id>":"success"},"errors":0
                             const parsedData = JSON.parse(response);
                             if (parsedData.errors > 0) {
                                 console.error(`Failed sending ${parsedData.errors} notifications`);
@@ -111,7 +104,6 @@ exports.WirePusher = /** @class */ (function () {
                 req.write(data)
                 req.end()
             })
-        });
-    };
-    return WirePusher;
-}());
+        })
+    }
+}

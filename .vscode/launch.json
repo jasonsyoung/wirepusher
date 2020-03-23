@@ -19,6 +19,9 @@
             "skipFiles": [
                 "<node_internals>/**"
             ],
+            "env": {
+                "WIREPUSHER_TEST_ID": "BycnmpgWS"
+            },
             "program": "${workspaceFolder}/test.js"
         }
     ]
