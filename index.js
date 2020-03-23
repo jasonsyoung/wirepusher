@@ -4,7 +4,7 @@ const https = require('https')
 const ENV_KEY='WIREPUSHER_KEY'
 const CONFIG_FILENAME='.wirepusher'
 
-var WirePusher = /** @class */ (function () {
+exports.WirePusher = /** @class */ (function () {
     function WirePusher(ids) {
         let _ids = null
         if (typeof ids === 'undefined') {
