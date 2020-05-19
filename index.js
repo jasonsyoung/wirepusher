@@ -1,5 +1,8 @@
 "use strict";
+const fs = require('fs')
 const https = require('https')
+const os = require('os')
+const path = require('path')
 
 const ENV_KEY='WIREPUSHER_KEY'
 const CONFIG_FILENAME='.wirepusher'
@@ -73,9 +76,9 @@ module.exports = class WirePusher {
 
                 let dataStr = ''
                 for (let [key, value] of Object.entries(data)) {
-                    dataStr += key + `=` + escape(value) + `&`    
+                    dataStr += key + `=` + escape(value) + `&`
                 }
-                
+
                 const req = https.get(`https://wirepusher.com/send?${dataStr}`, (res) => {
                     let response = ''
                     res.on('data', (d) => {
@@ -96,11 +99,11 @@ module.exports = class WirePusher {
                         }
                     })
                 })
-                
+
                 req.on('error', e => {
                     console.error('An error occured making the request', e.message)
                 })
-                
+
                 req.write(data)
                 req.end()
             })
